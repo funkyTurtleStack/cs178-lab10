@@ -21,9 +21,12 @@ def create_movie():
     """
     title = input("Enter the title for the new movie: ")
 
+    year = input("Enter the year for the new movie: ")
+
     table.put_item(
         Item={
             'Title': title,
+            'Year': year,
             'Ratings': []
         }
     )
