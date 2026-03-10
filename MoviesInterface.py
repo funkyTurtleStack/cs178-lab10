@@ -4,23 +4,57 @@
 # proposed score: 0 (out of 5) -- if I don't change this, I agree to get 0 points.
 
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
+
+#constants
+REGION = "us-east-1"
+TABLE_NAME = "Movies"
 
 # boto3 uses the credentials configured via `aws configure` on EC2
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-table = dynamodb.Table('Movies')
+dynamodb = boto3.resource('dynamodb', region_name=REGION)
+table = dynamodb.Table(TABLE_NAME)
 
 def create_movie():
     """
     Prompt user for a Movie Title.
     Add the movie to the database with the title and an empty Ratings list.
     """
+    title = input("Enter the title for the new movie: ")
+
+    table.put_item(
+        Item={
+            'Title': title,
+            'Ratings': []
+        }
+    )
+
     print("creating a movie")
 
+def print_movie(movie):
+    """Prints the info for the given movie."""
+    title = movie.get("Title", "Unknown Title")
+    year = movie.get("Year", "Unknown Year")
+    ratings = movie.get("Ratings", "No ratings")
+    director = movie.get("Director", "Unknown Director")
+
+    print(f"  Title  : {title}")
+    print(f"  Year   : {year}")
+    print(f"  Ratings: {ratings}")
+    print(f" Director: {director}")
+    print()
+
 def print_all_movies():
-    """
-    Display all movies in the database.
-    """
-    print("display all movies")
+    """Scan the entire Movies table and print each item."""
+    response = table.scan()
+    items = response.get("Items", [])
+    
+    if not items:
+        print("No movies found. Make sure your DynamoDB table has data.")
+        return
+    
+    print(f"Found {len(items)} movie(s):\n")
+    for movie in items:
+        print_movie(movie)
 
 def update_rating():
     """
