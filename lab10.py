@@ -8,80 +8,75 @@ from boto3.dynamodb.conditions import Key, Attr
 
 #constants
 REGION = "us-east-1"
-TABLE_NAME = "Movies"
+TABLE_NAME = "Songs"
 
 # boto3 uses the credentials configured via `aws configure` on EC2
 dynamodb = boto3.resource('dynamodb', region_name=REGION)
 table = dynamodb.Table(TABLE_NAME)
 
-def create_movie():
-    """
-    Prompt user for a Movie Title.
-    Add the movie to the database with the title and an empty Ratings list.
-    """
-    title = input("Enter the title for the new movie: ")
+def create_song():
+    """Creates a new song"""
+    name = input("Enter the name for the new song: ")
 
-    year = input("Enter the year for the new movie: ")
+    artist = input("Enter the artist for the new song: ")
 
     table.put_item(
         Item={
-            'Title': title,
-            'Year': year,
+            'Name': name,
+            'Artist': artist,
             'Ratings': []
         }
     )
 
-    print("creating a movie")
+    print("creating a song")
 
-def print_movie(movie):
-    """Prints the info for the given movie."""
-    title = movie.get("Title", "Unknown Title")
-    year = movie.get("Year", "Unknown Year")
-    ratings = movie.get("Ratings", "No ratings")
-    director = movie.get("Director", "Unknown Director")
+def print_song(song):
+    """Prints the info for the given song."""
+    name = song.get("Name", "Unknown Name")
+    artist = song.get("Artist", "Unknown Artist")
+    ratings = song.get("Ratings", "No ratings")
 
-    print(f"  Title  : {title}")
-    print(f"  Year   : {year}")
+    print(f"  Name  : {name}")
+    print(f"  Artist: {artist}")
     print(f"  Ratings: {ratings}")
-    print(f" Director: {director}")
     print()
 
-def print_all_movies():
-    """Scan the entire Movies table and print each item."""
+def print_all_songs():
+    """Scan the entire Songs table and print each item."""
     response = table.scan()
     items = response.get("Items", [])
     
     if not items:
-        print("No movies found. Make sure your DynamoDB table has data.")
+        print("No songs found. Make sure your DynamoDB table has data.")
         return
     
-    print(f"Found {len(items)} movie(s):\n")
-    for movie in items:
-        print_movie(movie)
+    print(f"Found {len(items)} song(s):\n")
+    for song in items:
+        print_song(song)
 
 def update_rating():
-    title = input("What is the movie title? ")
+    name = input("What is the song's name? ")
     rating = int(input("What is the rating (integer): "))
     table.update_item(
-        Key={"Title": title},
+        Key={"Name": name},
         UpdateExpression="SET Ratings = list_append(Ratings, :r)",
         ExpressionAttributeValues={':r': [rating]}
     )
 
-def delete_movie():
-    title = input("Enter the title for the movie to delete: ")
+def delete_song():
+    name = input("Enter the name of the song you want to delete: ")
     table.delete_item(
         Key={
-            'Title': title
+            'Name': name
         }
     )
-    print("deleting movie")
+    print("deleting song")
 
-def query_movie():
-    title = input("Enter the title of the movie to query: ")
+def query_song():
+    name = input("Enter the name of the song you want to query: ")
     response = table.get_item(
         Key={
-            'Title': title
+            'Name': name
         }
     )
     item = response.get('Item')
@@ -92,19 +87,15 @@ def query_movie():
     else:
         print("no ratings found")
     
-    """
-    Prompt user for a Movie Title.
-    Print out the average of all ratings in the movie's Ratings list.
-    """
-    print("query movie")
+    print("query song")
 
 def print_menu():
     print("----------------------------")
-    print("Press C: to CREATE a new movie")
-    print("Press R: to READ all movies")
-    print("Press U: to UPDATE a movie (add a review)")
-    print("Press D: to DELETE a movie")
-    print("Press Q: to QUERY a movie's average rating")
+    print("Press C: to CREATE a new song")
+    print("Press R: to READ all songs")
+    print("Press U: to UPDATE a song (add a review)")
+    print("Press D: to DELETE a song")
+    print("Press Q: to QUERY a song's average rating")
     print("Press X: to EXIT application")
     print("----------------------------")
 
@@ -114,21 +105,21 @@ def main():
         print_menu()
         input_char = input("Choice: ")
         if input_char.upper() == "C":
-            create_movie()
+            create_song()
         elif input_char.upper() == "R":
-            print_all_movies()
+            print_all_songs()
         elif input_char.upper() == "U":
             try:
                 update_rating()
             except Exception:
-                print("!! error in updating movie rating !!")
+                print("!! error in updating song rating !!")
         elif input_char.upper() == "D":
-            delete_movie()
+            delete_song()
         elif input_char.upper() == "Q":
             try:
-                query_movie()
+                query_song()
             except Exception:
-                print("!! movie not found !!")
+                print("!! song not found !!")
         elif input_char.upper() == "X":
             print("exiting...")
         else:
